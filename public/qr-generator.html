@@ -146,10 +146,9 @@
         <!-- Location Checker Section -->
         <div class="section">
             <h2>2. Test Location Access</h2>
-            <p>This simulates what employees see when they scan the QR code:</p>
+            <p>This tests what employees see when they scan the QR code:</p>
             
             <button onclick="checkLocation()">📍 Check My Current Location</button>
-            <button onclick="simulateOfficeLocation()">🏢 Simulate Being at Office</button>
             
             <div id="locationResult"></div>
         </div>
@@ -181,7 +180,7 @@
             lng: 153.0082
         };
         
-        let allowedRadius = 50; // meters
+        let allowedRadius = 50; // Fixed at 50 meters maximum
         let currentBusinessName = "Pixel Studios";
         
         function generateQRCode() {
@@ -279,7 +278,7 @@
                         <div class="status ${distance <= allowedRadius ? 'success' : 'error'}">
                             <strong>📏 Distance to Office:</strong> ${distance.toFixed(1)} meters<br>
                             <strong>Status:</strong> ${distance <= allowedRadius ? '✅ WITHIN ALLOWED RANGE' : '❌ TOO FAR FROM OFFICE'}<br>
-                            <strong>Required:</strong> Must be within ${allowedRadius} meters
+                            <strong>Required:</strong> Must be within 50 meters (maximum security range)
                         </div>
                     `;
                 },
@@ -308,7 +307,7 @@
                     <strong>📍 Your Current Location:</strong> 27 Otonga Road, Ashgrove<br>
                     <strong>📏 Distance to Office:</strong> 25.0 meters<br>
                     <strong>Status:</strong> ✅ WITHIN ALLOWED RANGE<br>
-                    <strong>Required:</strong> Must be within ${allowedRadius} meters
+                    <strong>Required:</strong> Must be within 50 meters (maximum security range)
                 </div>
             `;
         }
