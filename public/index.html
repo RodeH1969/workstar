@@ -443,8 +443,8 @@
         // Load trivia topics from file
         async function loadTriviaTopics() {
             try {
-                console.log('Loading trivia topics from /topics/topics.txt...');
-                const response = await fetch('/topics/topics.txt');
+                console.log('Loading trivia topics from ./topics/topics.txt...');
+                const response = await fetch('./topics/topics.txt');
                 if (response.ok) {
                     const text = await response.text();
                     // Split by lines and parse numbered format (1. Topic Name)
@@ -461,6 +461,7 @@
                     console.log(`✅ Loaded ${triviaTopics.length} trivia topics:`, triviaTopics);
                 } else {
                     console.error('❌ Failed to load trivia topics file - Status:', response.status);
+                    console.log('Falling back to hardcoded topics');
                     // Use your specific fallback topics
                     triviaTopics = [
                         "Harry Potter",
@@ -478,6 +479,7 @@
                 }
             } catch (error) {
                 console.error('❌ Error loading trivia topics:', error);
+                console.log('Using hardcoded fallback topics');
                 // Use your specific fallback topics
                 triviaTopics = [
                     "Harry Potter",
