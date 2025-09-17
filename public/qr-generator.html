@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo-Restricted QR Code System</title>
+    <title>WorkStar QR Code Generator - Office Competition Setup</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <style>
         body {
@@ -113,7 +113,7 @@
 <body>
     <div class="container">
         <div style="text-align: center; margin-bottom: 30px;">
-            <img src="/workstar_logo.png" alt="WorkStar Logo" style="height: 80px; margin-bottom: 15px;">
+            <img src="workstar_logo.png" alt="WorkStar Logo" style="height: 80px; margin-bottom: 15px;">
             <h1 style="color: #1E3A8A; margin: 0;">WorkStar Office Competition</h1>
             <p style="color: #666; margin: 5px 0;">Geo-Restricted QR Code Generator</p>
         </div>
@@ -130,15 +130,10 @@
             <div class="form-group">
                 <label for="officeAddress">Office Address:</label>
                 <input type="text" id="officeAddress" value="27 Otonga Road, Ashgrove, QLD 4060, Australia" placeholder="Enter full office address">
+                <small>Employees must be within 50 meters of this address to register</small>
             </div>
             
-            <div class="form-group">
-                <label for="allowedRadius">Allowed Radius (meters):</label>
-                <input type="number" id="allowedRadius" value="50" placeholder="50" min="10" max="500">
-                <small>How close employees need to be to the office (recommended: 50-100 meters)</small>
-            </div>
-            
-            <button onclick="generateQRCode()">🎯 Generate Geo-Restricted QR Code</button>
+            <button onclick="generateQRCode()">🎯 Generate WorkStar QR Code</button>
             
             <div id="qrResult"></div>
         </div>
@@ -186,7 +181,7 @@
         function generateQRCode() {
             const businessName = document.getElementById('businessName').value;
             const officeAddress = document.getElementById('officeAddress').value;
-            allowedRadius = parseInt(document.getElementById('allowedRadius').value);
+            allowedRadius = 50; // Fixed at 50 meters
             currentBusinessName = businessName;
             
             if (!businessName || !officeAddress) {
@@ -194,11 +189,8 @@
                 return;
             }
             
-            // In a real implementation, you'd geocode the address to get coordinates
-            // For this demo, we're using the Ashgrove coordinates
-            
             // Create the URL that the QR code will point to
-            const qrUrl = `${window.location.origin}${window.location.pathname}?action=checkin&business=${encodeURIComponent(businessName)}&lat=${TARGET_COORDINATES.lat}&lng=${TARGET_COORDINATES.lng}&radius=${allowedRadius}`;
+            const qrUrl = `${window.location.origin}/register.html?action=checkin&business=${encodeURIComponent(businessName)}&lat=${TARGET_COORDINATES.lat}&lng=${TARGET_COORDINATES.lng}&radius=${allowedRadius}&t=${Date.now()}`;
             
             // Generate QR code
             const canvas = document.createElement('canvas');
@@ -212,11 +204,11 @@
             
             document.getElementById('qrResult').innerHTML = `
                 <div class="qr-display">
-                    <img src="/workstar_logo.png" alt="WorkStar" style="height: 60px; margin-bottom: 15px;">
+                    <img src="workstar_logo.png" alt="WorkStar" style="height: 60px; margin-bottom: 15px;">
                     <h3>🎯 Your WorkStar Competition QR Code</h3>
                     <p><strong>Business:</strong> ${businessName}</p>
                     <p><strong>Address:</strong> ${officeAddress}</p>
-                    <p><strong>Allowed Radius:</strong> ${allowedRadius} meters</p>
+                    <p><strong>Security Radius:</strong> 50 meters</p>
                     <div style="margin: 20px 0;">
                         ${canvas.outerHTML}
                     </div>
@@ -295,23 +287,6 @@
             );
         }
         
-        function simulateOfficeLocation() {
-            const distance = 25; // Simulate being 25 meters from office
-            
-            document.getElementById('locationResult').innerHTML = `
-                <div class="status info">
-                    <strong>🧪 SIMULATION MODE</strong><br>
-                    Simulating location: 25 meters from office
-                </div>
-                <div class="status success">
-                    <strong>📍 Your Current Location:</strong> 27 Otonga Road, Ashgrove<br>
-                    <strong>📏 Distance to Office:</strong> 25.0 meters<br>
-                    <strong>Status:</strong> ✅ WITHIN ALLOWED RANGE<br>
-                    <strong>Required:</strong> Must be within 50 meters (maximum security range)
-                </div>
-            `;
-        }
-        
         function registerEmployee() {
             const employeeName = document.getElementById('employeeName').value;
             const employeePhone = document.getElementById('employeePhone').value;
@@ -323,7 +298,6 @@
                 return;
             }
             
-            // In a real implementation, this would check geolocation first
             document.getElementById('registrationResult').innerHTML = `
                 <div class="status success">
                     ✅ <strong>Check-in Successful!</strong><br>
@@ -332,28 +306,10 @@
                     Business: ${currentBusinessName}<br>
                     Time: ${new Date().toLocaleTimeString()}<br>
                     <br>
-                    🎯 You're now entered in today's 10am competition!
+                    🎯 You're now entered in today's 10am WorkStar competition!
                 </div>
             `;
         }
-        
-        // Check URL parameters for QR code scan simulation
-        window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('action') === 'checkin') {
-                const business = urlParams.get('business');
-                const lat = parseFloat(urlParams.get('lat'));
-                const lng = parseFloat(urlParams.get('lng'));
-                const radius = parseInt(urlParams.get('radius'));
-                
-                document.getElementById('businessName').value = business;
-                allowedRadius = radius;
-                currentBusinessName = business;
-                
-                // Auto-trigger location check for QR scan
-                setTimeout(checkLocation, 1000);
-            }
-        };
     </script>
 </body>
 </html>

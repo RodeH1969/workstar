@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Office Challenge - Registration</title>
+    <title>WorkStar Daily Registration - Office Competition Entry</title>
     <style>
         * {
             margin: 0;
@@ -29,11 +29,6 @@
             max-width: 500px;
             width: 100%;
             text-align: center;
-        }
-        
-        .logo {
-            font-size: 4rem;
-            margin-bottom: 20px;
         }
         
         h1 {
@@ -182,7 +177,7 @@
 </head>
 <body>
     <div class="container">
-        <img src="/workstar_logo.png" alt="WorkStar Logo" style="height: 100px; margin-bottom: 20px;">
+        <img src="workstar_logo.png" alt="WorkStar Logo" style="height: 100px; margin-bottom: 20px;">
         <h1>WorkStar Daily Competition</h1>
         <div class="subtitle">Register for today's prize competition</div>
         
@@ -512,13 +507,6 @@
             
             if (!checkQRAccess()) {
                 return;
-            }
-            
-            // Add timestamp to prevent bookmarking
-            const urlParams = new URLSearchParams(window.location.search);
-            if (!urlParams.get('t')) {
-                urlParams.set('t', Date.now().toString());
-                window.history.replaceState({}, '', `${window.location.pathname}?${urlParams}`);
             }
             
             verifyLocation();
