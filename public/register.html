@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorkStar Daily Registration</title>
+    <title>Daily Office Challenge - Registration</title>
     <style>
         * {
             margin: 0;
@@ -29,6 +29,11 @@
             max-width: 500px;
             width: 100%;
             text-align: center;
+        }
+        
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 20px;
         }
         
         h1 {
@@ -507,6 +512,13 @@
             
             if (!checkQRAccess()) {
                 return;
+            }
+            
+            // Add timestamp to prevent bookmarking
+            const urlParams = new URLSearchParams(window.location.search);
+            if (!urlParams.get('t')) {
+                urlParams.set('t', Date.now().toString());
+                window.history.replaceState({}, '', `${window.location.pathname}?${urlParams}`);
             }
             
             verifyLocation();

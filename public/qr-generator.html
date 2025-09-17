@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorkStar QR Code Generator</title>
+    <title>Geo-Restricted QR Code System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <style>
         body {
@@ -138,7 +138,7 @@
                 <small>How close employees need to be to the office (recommended: 50-100 meters)</small>
             </div>
             
-            <button onclick="generateQRCode()">🎯 Generate WorkStar QR Code</button>
+            <button onclick="generateQRCode()">🎯 Generate Geo-Restricted QR Code</button>
             
             <div id="qrResult"></div>
         </div>
@@ -195,8 +195,11 @@
                 return;
             }
             
+            // In a real implementation, you'd geocode the address to get coordinates
+            // For this demo, we're using the Ashgrove coordinates
+            
             // Create the URL that the QR code will point to
-            const qrUrl = `${window.location.origin}/register.html?action=checkin&business=${encodeURIComponent(businessName)}&lat=${TARGET_COORDINATES.lat}&lng=${TARGET_COORDINATES.lng}&radius=${allowedRadius}&t=${Date.now()}`;
+            const qrUrl = `${window.location.origin}${window.location.pathname}?action=checkin&business=${encodeURIComponent(businessName)}&lat=${TARGET_COORDINATES.lat}&lng=${TARGET_COORDINATES.lng}&radius=${allowedRadius}`;
             
             // Generate QR code
             const canvas = document.createElement('canvas');
@@ -321,6 +324,7 @@
                 return;
             }
             
+            // In a real implementation, this would check geolocation first
             document.getElementById('registrationResult').innerHTML = `
                 <div class="status success">
                     ✅ <strong>Check-in Successful!</strong><br>
@@ -329,10 +333,28 @@
                     Business: ${currentBusinessName}<br>
                     Time: ${new Date().toLocaleTimeString()}<br>
                     <br>
-                    🎯 You're now entered in today's 10am WorkStar competition!
+                    🎯 You're now entered in today's 10am competition!
                 </div>
             `;
         }
+        
+        // Check URL parameters for QR code scan simulation
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('action') === 'checkin') {
+                const business = urlParams.get('business');
+                const lat = parseFloat(urlParams.get('lat'));
+                const lng = parseFloat(urlParams.get('lng'));
+                const radius = parseInt(urlParams.get('radius'));
+                
+                document.getElementById('businessName').value = business;
+                allowedRadius = radius;
+                currentBusinessName = business;
+                
+                // Auto-trigger location check for QR scan
+                setTimeout(checkLocation, 1000);
+            }
+        };
     </script>
 </body>
 </html>
