@@ -349,7 +349,7 @@
     <div class="container">
         <!-- Header with WorkStar Logo -->
         <div class="header">
-            <img src="/workstar_logo.png" alt="WorkStar Logo">
+            <img src="workstar_logo.png" alt="WorkStar Logo">
             <h1>WorkStar Live Competition</h1>
             <div class="subtitle">Daily Prize Draw</div>
         </div>
@@ -357,7 +357,7 @@
         <!-- Sponsor Section -->
         <div class="sponsor-section">
             <div class="sponsor-title">Today's Prize brought to you by</div>
-            <img src="/yellowu_logo.png" alt="Yellow Utes Logo" class="sponsor-logo">
+            <img src="yellowu_logo.png" alt="Yellow Utes Logo" class="sponsor-logo">
             <div class="sponsor-tagline">
                 <div class="ticker-content">⚡ Instant ute rental anywhere in Brisbane ⚡ Book online in 60 seconds ⚡ Available 24/7 ⚡ Instant ute rental anywhere in Brisbane ⚡</div>
             </div>
@@ -443,8 +443,8 @@
         // Load trivia topics from file
         async function loadTriviaTopics() {
             try {
-                console.log('Loading trivia topics from ./topics/topics.txt...');
-                const response = await fetch('./topics/topics.txt');
+                console.log('Loading trivia topics from ./topics.txt...');
+                const response = await fetch('./topics.txt');
                 if (response.ok) {
                     const text = await response.text();
                     // Split by lines and parse numbered format (1. Topic Name)
