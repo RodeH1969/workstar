@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WorkStar QR Code Generator - Office Competition Setup</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -76,6 +75,14 @@
             margin-top: 20px;
         }
         
+        .qr-code-image {
+            max-width: 300px;
+            height: auto;
+            border: 2px solid #1E3A8A;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
         .status {
             padding: 15px;
             border-radius: 10px;
@@ -107,6 +114,21 @@
             padding: 10px;
             border-radius: 5px;
             margin: 10px 0;
+            word-break: break-all;
+        }
+        
+        .download-btn {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px;
+            display: inline-block;
+        }
+        
+        .download-btn:hover {
+            background: #218838;
         }
     </style>
 </head>
@@ -192,15 +214,8 @@
             // Create the URL that the QR code will point to
             const qrUrl = `${window.location.origin}/register.html?action=checkin&business=${encodeURIComponent(businessName)}&lat=${TARGET_COORDINATES.lat}&lng=${TARGET_COORDINATES.lng}&radius=${allowedRadius}&t=${Date.now()}`;
             
-            // Generate QR code
-            const canvas = document.createElement('canvas');
-            const qr = new QRious({
-                element: canvas,
-                value: qrUrl,
-                size: 300,
-                background: 'white',
-                foreground: 'black'
-            });
+            // Generate QR code using QR Server API (no external library needed)
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrUrl)}`;
             
             document.getElementById('qrResult').innerHTML = `
                 <div class="qr-display">
@@ -209,13 +224,28 @@
                     <p><strong>Business:</strong> ${businessName}</p>
                     <p><strong>Address:</strong> ${officeAddress}</p>
                     <p><strong>Security Radius:</strong> 50 meters</p>
+                    
                     <div style="margin: 20px 0;">
-                        ${canvas.outerHTML}
+                        <img src="${qrApiUrl}" alt="QR Code" class="qr-code-image">
                     </div>
+                    
+                    <div style="margin: 20px 0;">
+                        <a href="${qrApiUrl}" download="workstar-qr-code.png" class="download-btn">
+                            📥 Download QR Code
+                        </a>
+                        <a href="${qrApiUrl.replace('300x300', '600x600')}" download="workstar-qr-code-large.png" class="download-btn">
+                            📥 Download Large QR Code
+                        </a>
+                    </div>
+                    
                     <p><small>Employees must scan this QR code while physically at the office to register for daily prizes</small></p>
                     <div class="coordinates">
                         <strong>QR Code URL:</strong><br>
                         ${qrUrl}
+                    </div>
+                    <div class="coordinates">
+                        <strong>Direct QR Image URL:</strong><br>
+                        ${qrApiUrl}
                     </div>
                 </div>
             `;

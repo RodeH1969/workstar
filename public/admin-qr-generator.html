@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorkStar Admin - QR Code Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .admin-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #dc3545;
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        input:focus {
+            border-color: #FFD700;
+            outline: none;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #1E3A8A;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        button:hover {
+            background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%);
+        }
+        
+        .qr-display {
+            text-align: center;
+            padding: 30px;
+            background: #f9f9fa;
+            border-radius: 10px;
+            margin-top: 30px;
+            border: 3px solid #28a745;
+        }
+        
+        .qr-code-image {
+            max-width: 400px;
+            height: auto;
+            border: 3px solid #1E3A8A;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .download-btn {
+            background: #28a745;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 10px;
+            display: inline-block;
+            font-weight: bold;
+        }
+        
+        .download-btn:hover {
+            background: #218838;
+        }
+        
+        .coordinates {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            word-break: break-all;
+            border-left: 4px solid #007bff;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #ffeaa7;
+            font-weight: bold;
+        }
+        
+        .business-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .business-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+        }
+        
+        .coords-input {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="admin-header">
+            <h1>🔐 WORKSTAR ADMIN PANEL</h1>
+            <p>Generate QR Codes for Business Locations</p>
+        </div>
+        
+        <div class="warning">
+            ⚠️ <strong>ADMIN ONLY:</strong> This page generates location-locked QR codes for businesses. Only people physically at the specified address can register.
+        </div>
+        
+        <form id="adminForm">
+            <div class="form-group">
+                <label for="businessName">Business Name:</label>
+                <input type="text" id="businessName" required placeholder="Enter business name">
+            </div>
+            
+            <div class="form-group">
+                <label for="contactName">Primary Contact Name:</label>
+                <input type="text" id="contactName" required placeholder="Enter contact person name">
+            </div>
+            
+            <div class="form-group">
+                <label for="contactEmail">Contact Email:</label>
+                <input type="email" id="contactEmail" required placeholder="Enter contact email">
+            </div>
+            
+            <div class="form-group">
+                <label for="officeAddress">Exact Office Address:</label>
+                <textarea id="officeAddress" required placeholder="Enter complete office address" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>GPS Coordinates (Required for Security):</label>
+                <div class="coords-input">
+                    <input type="number" id="latitude" step="any" required placeholder="Latitude (e.g., -27.480700)">
+                    <input type="number" id="longitude" step="any" required placeholder="Longitude (e.g., 153.042500)">
+                </div>
+                <small>Use Google Maps to get exact coordinates. Right-click on location → "What's here?"</small>
+            </div>
+            
+            <button type="button" onclick="generateBusinessQR()">🎯 Generate Secure QR Code</button>
+        </form>
+        
+        <div id="qrResult"></div>
+    </div>
+
+    <script>
+        function generateBusinessQR() {
+            const businessName = document.getElementById('businessName').value;
+            const contactName = document.getElementById('contactName').value;
+            const contactEmail = document.getElementById('contactEmail').value;
+            const officeAddress = document.getElementById('officeAddress').value;
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const longitude = parseFloat(document.getElementById('longitude').value);
+            
+            // Validation
+            if (!businessName || !contactName || !contactEmail || !officeAddress || !latitude || !longitude) {
+                alert('Please fill in all fields including GPS coordinates');
+                return;
+            }
+            
+            if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+                alert('Invalid GPS coordinates. Please check your latitude and longitude values.');
+                return;
+            }
+            
+            // Create unique business ID
+            const businessId = btoa(businessName + Date.now()).replace(/[/+=]/g, '').substring(0, 12);
+            
+            // Create the secure registration URL
+            const registrationUrl = `${window.location.origin}/register.html?biz=${businessId}&lat=${latitude}&lng=${longitude}&name=${encodeURIComponent(businessName)}&t=${Date.now()}`;
+            
+            // Generate QR code
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(registrationUrl)}`;
+            
+            // Store business info (in real app, this would go to a database)
+            const businessInfo = {
+                id: businessId,
+                name: businessName,
+                contact: contactName,
+                email: contactEmail,
+                address: officeAddress,
+                coordinates: { lat: latitude, lng: longitude },
+                qrUrl: registrationUrl,
+                created: new Date().toISOString()
+            };
+            
+            // Save to localStorage (in real app, save to database)
+            let businesses = JSON.parse(localStorage.getItem('workstarBusinesses') || '{}');
+            businesses[businessId] = businessInfo;
+            localStorage.setItem('workstarBusinesses', JSON.stringify(businesses));
+            
+            // Display result
+            document.getElementById('qrResult').innerHTML = `
+                <div class="qr-display">
+                    <h2>✅ QR Code Generated Successfully!</h2>
+                    <p><strong>Business:</strong> ${businessName}</p>
+                    <p><strong>Contact:</strong> ${contactName} (${contactEmail})</p>
+                    <p><strong>Address:</strong> ${officeAddress}</p>
+                    <p><strong>GPS Lock:</strong> ${latitude}, ${longitude}</p>
+                    <p><strong>Security Radius:</strong> 50 meters</p>
+                    
+                    <img src="${qrApiUrl}" alt="QR Code" class="qr-code-image">
+                    
+                    <div style="margin: 20px 0;">
+                        <a href="${qrApiUrl}" download="workstar-${businessName.replace(/\s+/g, '-').toLowerCase()}.png" class="download-btn">
+                            📥 Download QR Sticker (Standard)
+                        </a>
+                        <a href="${qrApiUrl.replace('400x400', '800x800')}" download="workstar-${businessName.replace(/\s+/g, '-').toLowerCase()}-large.png" class="download-btn">
+                            📥 Download QR Sticker (Large)
+                        </a>
+                    </div>
+                    
+                    <div class="coordinates">
+                        <strong>Business ID:</strong> ${businessId}<br>
+                        <strong>Registration URL:</strong><br>
+                        ${registrationUrl}
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>SECURITY:</strong> This QR code will ONLY work when scanned from within 50 meters of ${officeAddress}. Send this QR sticker to ${contactName} at ${contactEmail}.
+                    </div>
+                </div>
+            `;
+            
+            // Clear form
+            document.getElementById('adminForm').reset();
+        }
+    </script>
+</body>
+</html>

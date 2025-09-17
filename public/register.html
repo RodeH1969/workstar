@@ -173,6 +173,14 @@
             border-radius: 8px;
             border-left: 4px solid #28a745;
         }
+        
+        .business-info {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #007bff;
+        }
     </style>
 </head>
 <body>
@@ -187,15 +195,10 @@
     </div>
 
     <script>
-        // Configuration
-        const TARGET_OFFICE = {
-            lat: -27.4354,
-            lng: 153.0082,
-            name: "27 Otonga Road, Ashgrove",
-            radius: 50 // meters
-        };
-        
+        // Configuration - will be set from QR parameters
+        let TARGET_OFFICE = null;
         let currentBusiness = "";
+        let businessId = "";
         let hasValidAccess = false;
         
         // Utility functions
@@ -239,39 +242,69 @@
         
         function checkQRAccess() {
             const urlParams = new URLSearchParams(window.location.search);
-            const action = urlParams.get('action');
-            const business = urlParams.get('business');
+            businessId = urlParams.get('biz');
+            const lat = urlParams.get('lat');
+            const lng = urlParams.get('lng');
+            const businessName = urlParams.get('name');
             const qrTimestamp = urlParams.get('t');
             
-            if (action !== 'checkin' || !business || !qrTimestamp) {
-                showAccessDenied("Invalid access. This page can only be accessed by scanning the office QR code.");
+            console.log('QR Parameters:', { businessId, lat, lng, businessName, qrTimestamp });
+            
+            if (!businessId || !lat || !lng || !businessName || !qrTimestamp) {
+                showAccessDenied("Invalid access. This page can only be accessed by scanning an official WorkStar QR code from your office.");
                 return false;
             }
             
-            // Check if QR code is recent (within 5 minutes)
+            // Validate coordinates
+            const latitude = parseFloat(lat);
+            const longitude = parseFloat(lng);
+            
+            if (isNaN(latitude) || isNaN(longitude) || 
+                latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+                showAccessDenied("Invalid QR code data. Please contact WorkStar support.");
+                return false;
+            }
+            
+            // Check if QR code is recent (within 10 minutes)
             const qrTime = parseInt(qrTimestamp);
             const currentTime = Date.now();
             const timeDiff = currentTime - qrTime;
             
-            if (timeDiff > 5 * 60 * 1000) { // 5 minutes in milliseconds
-                showAccessDenied("QR code has expired. Please scan the office QR code again.");
+            if (timeDiff > 10 * 60 * 1000) { // 10 minutes in milliseconds
+                showAccessDenied("QR code has expired. Please scan a fresh QR code from your office.");
                 return false;
             }
             
-            currentBusiness = business;
+            // Set the target office from QR parameters
+            TARGET_OFFICE = {
+                lat: latitude,
+                lng: longitude,
+                name: decodeURIComponent(businessName),
+                radius: 50 // 50 meter security radius
+            };
+            
+            currentBusiness = decodeURIComponent(businessName);
+            
+            console.log('Target Office Set:', TARGET_OFFICE);
+            
             return true;
         }
         
         function verifyLocation() {
             document.getElementById('accessStatus').innerHTML = `
+                <div class="business-info">
+                    <strong>🏢 ${currentBusiness}</strong><br>
+                    <small>Business ID: ${businessId}</small>
+                </div>
                 <div class="status loading">
                     📍 Verifying your location...<br>
-                    <small>Please allow location access when prompted</small>
+                    <small>Please allow location access when prompted</small><br>
+                    <small>You must be within 50 meters of your office address</small>
                 </div>
             `;
             
             if (!navigator.geolocation) {
-                showAccessDenied("Geolocation is not supported. Registration requires location verification.");
+                showAccessDenied("Geolocation is not supported by this device. Registration requires location verification for security.");
                 return;
             }
             
@@ -287,17 +320,39 @@
                     );
                     
                     console.log(`Distance to office: ${distance.toFixed(1)}m (accuracy: ±${accuracy.toFixed(0)}m)`);
+                    console.log(`User location: ${userLat}, ${userLng}`);
+                    console.log(`Target location: ${TARGET_OFFICE.lat}, ${TARGET_OFFICE.lng}`);
                     
-                    if (distance <= TARGET_OFFICE.radius + accuracy) {
+                    // Allow some tolerance for GPS accuracy
+                    const allowedDistance = TARGET_OFFICE.radius + Math.min(accuracy, 100);
+                    
+                    if (distance <= allowedDistance) {
                         showLocationVerified(distance, accuracy);
                         hasValidAccess = true;
                         checkExistingRegistration();
                     } else {
-                        showAccessDenied(`You are ${distance.toFixed(0)}m from the office. You must be within ${TARGET_OFFICE.radius}m to register.`);
+                        showAccessDenied(`You are ${distance.toFixed(0)}m from your office. You must be within ${TARGET_OFFICE.radius}m of your registered office address to participate in WorkStar.`);
                     }
                 },
                 function(error) {
-                    showAccessDenied(`Location verification failed: ${error.message}. Registration requires location access.`);
+                    let errorMessage = "Location verification failed. ";
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage += "Please allow location access and try again.";
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage += "Your location cannot be determined. Please try again or move to an area with better GPS signal.";
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage += "Location request timed out. Please try again.";
+                            break;
+                        default:
+                            errorMessage += "Unknown location error. Please try again.";
+                            break;
+                    }
+                    
+                    showAccessDenied(errorMessage + " Registration requires location verification for security.");
                 },
                 {
                     enableHighAccuracy: true,
@@ -314,28 +369,37 @@
                     ${message}
                 </div>
                 <div class="info-box">
-                    <strong>How to access this page:</strong><br>
-                    1. Be physically present at the office<br>
-                    2. Scan the office QR code<br>
-                    3. Allow location access when prompted
+                    <strong>To access this page:</strong><br>
+                    1. Be physically present at your registered office location<br>
+                    2. Scan the official WorkStar QR code provided to your business<br>
+                    3. Allow location access when prompted<br>
+                    4. Must be within 50 meters of your office address
+                </div>
+                <div class="business-info">
+                    <strong>Need help?</strong><br>
+                    Contact WorkStar support with your Business ID: <strong>${businessId || 'N/A'}</strong>
                 </div>
             `;
         }
         
         function showLocationVerified(distance, accuracy) {
             document.getElementById('accessStatus').innerHTML = `
+                <div class="business-info">
+                    <strong>🏢 ${currentBusiness}</strong><br>
+                    <small>Authorized WorkStar Location</small>
+                </div>
                 <div class="status success">
                     ✅ <strong>Location Verified!</strong><br>
-                    You are ${distance.toFixed(0)}m from ${TARGET_OFFICE.name}<br>
+                    You are ${distance.toFixed(0)}m from your office<br>
                     <small>GPS accuracy: ±${accuracy.toFixed(0)}m</small>
                 </div>
             `;
         }
         
         function checkExistingRegistration() {
-            // Check if user has already registered today (simplified - using localStorage)
+            // Check if user has already registered today
             const today = getTodayKey();
-            const existingRegistration = localStorage.getItem(`registration_${today}`);
+            const existingRegistration = localStorage.getItem(`registration_${businessId}_${today}`);
             
             if (existingRegistration) {
                 const employee = JSON.parse(existingRegistration);
@@ -348,6 +412,9 @@
         function showAlreadyRegistered(employee) {
             document.getElementById('alreadyRegistered').style.display = 'block';
             document.getElementById('alreadyRegistered').innerHTML = `
+                <div class="business-info">
+                    <strong>🏢 ${currentBusiness}</strong>
+                </div>
                 <div class="already-registered">
                     <h2>✅ Already Registered!</h2>
                     <p><strong>Name:</strong> ${employee.name}</p>
@@ -372,6 +439,11 @@
         function showRegistrationForm() {
             document.getElementById('registrationForm').style.display = 'block';
             document.getElementById('registrationForm').innerHTML = `
+                <div class="business-info">
+                    <strong>🏢 ${currentBusiness}</strong><br>
+                    <small>WorkStar Competition Registration</small>
+                </div>
+                
                 <div class="form-section">
                     <div class="prize-info">
                         <h3>🏆 WorkStar Daily Prize</h3>
@@ -388,12 +460,12 @@
                         
                         <div class="form-group">
                             <label for="employeePhone">Phone Number:</label>
-                            <input type="tel" id="employeePhone" required placeholder="Enter your phone number">
+                            <input type="tel" id="employeePhone" required placeholder="Enter your phone number (required for prize calls)">
                         </div>
                         
                         <div class="form-group">
                             <label for="employeeEmail">Email (optional):</label>
-                            <input type="email" id="employeeEmail" placeholder="Enter your email">
+                            <input type="email" id="employeeEmail" placeholder="Enter your email address">
                         </div>
                         
                         <button type="submit" class="register-btn">
@@ -403,10 +475,10 @@
                     
                     <div class="steps">
                         <h4>What happens next:</h4>
-                        <div class="step">📝 Your registration is confirmed</div>
-                        <div class="step">🎲 At 10AM, one name is randomly selected</div>
-                        <div class="step">📞 Selected person has 3 minutes to call in</div>
-                        <div class="step">🧠 Answer trivia question correctly to win!</div>
+                        <div class="step">📝 Your registration is confirmed for ${currentBusiness}</div>
+                        <div class="step">🎲 At 10AM, one name is randomly selected from all participants</div>
+                        <div class="step">📞 Selected person has 3 minutes to call the displayed number</div>
+                        <div class="step">🧠 Answer the trivia question correctly to win the prize!</div>
                     </div>
                 </div>
             `;
@@ -422,13 +494,21 @@
             const email = document.getElementById('employeeEmail').value.trim();
             
             if (!name || !phone) {
-                alert('Please fill in all required fields');
+                alert('Please fill in all required fields (Name and Phone Number)');
                 return;
             }
             
-            // Check if phone number already registered today
+            // Validate phone number format
+            const phoneRegex = /^[\d\s\+\-\(\)]{8,}$/;
+            if (!phoneRegex.test(phone)) {
+                alert('Please enter a valid phone number');
+                return;
+            }
+            
+            // Check if phone number already registered today for this business
+            const today = getTodayKey();
             if (hasRegisteredToday(phone)) {
-                alert('This phone number is already registered for today');
+                alert('This phone number is already registered for today\'s competition');
                 return;
             }
             
@@ -437,16 +517,22 @@
                 phone: phone,
                 email: email,
                 business: currentBusiness,
+                businessId: businessId,
                 timestamp: new Date().toLocaleString(),
-                registrationDate: getTodayKey()
+                registrationDate: today,
+                coordinates: TARGET_OFFICE
             };
             
-            // Store registration
-            localStorage.setItem(`registration_${getTodayKey()}`, JSON.stringify(employee));
+            // Store registration with business-specific key
+            localStorage.setItem(`registration_${businessId}_${today}`, JSON.stringify(employee));
             registerForToday(employee);
             
             // Show success
             document.getElementById('registrationForm').innerHTML = `
+                <div class="business-info">
+                    <strong>🏢 ${currentBusiness}</strong>
+                </div>
+                
                 <div class="status success">
                     🎉 <strong>Registration Successful!</strong><br>
                     Welcome to today's competition, ${name}!
@@ -457,15 +543,16 @@
                     <p><strong>Name:</strong> ${name}</p>
                     <p><strong>Phone:</strong> ${phone}</p>
                     <p><strong>Company:</strong> ${currentBusiness}</p>
-                    <p><strong>Competition Time:</strong> 10:00 AM</p>
+                    <p><strong>Competition Time:</strong> 10:00 AM daily</p>
                 </div>
                 
                 <div class="steps">
                     <h4>Important Reminders:</h4>
                     <div class="step">📱 Keep your phone nearby at 10AM</div>
                     <div class="step">⏰ If your name is called, you have 3 minutes to respond</div>
-                    <div class="step">📞 Call the number displayed on screen</div>
-                    <div class="step">🧠 Answer the trivia question to win!</div>
+                    <div class="step">📞 Call the number displayed on the competition screen</div>
+                    <div class="step">🧠 Answer the trivia question correctly to win!</div>
+                    <div class="step">🔄 Register again tomorrow for another chance to win</div>
                 </div>
                 
                 <div class="countdown" id="countdown"></div>
@@ -493,7 +580,7 @@
                 
                 countdownElement.innerHTML = `
                     ⏰ Next Competition:<br>
-                    ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}
+                    <span style="font-size: 1.5rem;">${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}</span>
                 `;
             }
             
@@ -503,20 +590,29 @@
         
         // Initialize the page
         window.onload = function() {
-            console.log('Page loaded, checking access...');
+            console.log('Registration page loaded, checking QR access...');
             
             if (!checkQRAccess()) {
+                console.log('QR access check failed');
                 return;
             }
             
+            console.log('QR access verified, checking location...');
             verifyLocation();
         };
         
         // Prevent page caching and bookmarking
         window.addEventListener('beforeunload', function() {
-            // Clear the URL to prevent direct access
+            // Clear the URL to prevent direct access attempts
             if (hasValidAccess) {
                 window.history.replaceState({}, '', window.location.pathname);
+            }
+        });
+        
+        // Prevent back button access
+        window.addEventListener('popstate', function(event) {
+            if (!hasValidAccess) {
+                window.location.replace(window.location.pathname);
             }
         });
     </script>
