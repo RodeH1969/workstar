@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorkStar QR Code Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #f0f0f0;
+            border-radius: 10px;
+        }
+        
+        .section h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #1E3A8A;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%);
+        }
+        
+        .qr-display {
+            text-align: center;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .coordinates {
+            font-family: monospace;
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="/workstar_logo.png" alt="WorkStar Logo" style="height: 80px; margin-bottom: 15px;">
+            <h1 style="color: #1E3A8A; margin: 0;">WorkStar Office Competition</h1>
+            <p style="color: #666; margin: 5px 0;">Geo-Restricted QR Code Generator</p>
+        </div>
+        
+        <!-- QR Code Generator Section -->
+        <div class="section">
+            <h2>1. Generate QR Code for Your Office</h2>
+            
+            <div class="form-group">
+                <label for="businessName">Business Name:</label>
+                <input type="text" id="businessName" value="Pixel Studios" placeholder="Enter your business name">
+            </div>
+            
+            <div class="form-group">
+                <label for="officeAddress">Office Address:</label>
+                <input type="text" id="officeAddress" value="27 Otonga Road, Ashgrove, QLD 4060, Australia" placeholder="Enter full office address">
+            </div>
+            
+            <div class="form-group">
+                <label for="allowedRadius">Allowed Radius (meters):</label>
+                <input type="number" id="allowedRadius" value="50" placeholder="50" min="10" max="500">
+                <small>How close employees need to be to the office (recommended: 50-100 meters)</small>
+            </div>
+            
+            <button onclick="generateQRCode()">🎯 Generate WorkStar QR Code</button>
+            
+            <div id="qrResult"></div>
+        </div>
+        
+        <!-- Location Checker Section -->
+        <div class="section">
+            <h2>2. Test Location Access</h2>
+            <p>This simulates what employees see when they scan the QR code:</p>
+            
+            <button onclick="checkLocation()">📍 Check My Current Location</button>
+            <button onclick="simulateOfficeLocation()">🏢 Simulate Being at Office</button>
+            
+            <div id="locationResult"></div>
+        </div>
+        
+        <!-- Employee Registration Section -->
+        <div class="section">
+            <h2>3. Employee Check-in Simulation</h2>
+            
+            <div class="form-group">
+                <label for="employeeName">Employee Name:</label>
+                <input type="text" id="employeeName" placeholder="Enter employee name">
+            </div>
+            
+            <div class="form-group">
+                <label for="employeePhone">Phone Number:</label>
+                <input type="text" id="employeePhone" placeholder="Enter phone number">
+            </div>
+            
+            <button onclick="registerEmployee()">✅ Register for Daily Competition</button>
+            
+            <div id="registrationResult"></div>
+        </div>
+    </div>
+
+    <script>
+        // Target location coordinates (27 Otonga Road, Ashgrove)
+        const TARGET_COORDINATES = {
+            lat: -27.4354,
+            lng: 153.0082
+        };
+        
+        let allowedRadius = 50; // meters
+        let currentBusinessName = "Pixel Studios";
+        
+        function generateQRCode() {
+            const businessName = document.getElementById('businessName').value;
+            const officeAddress = document.getElementById('officeAddress').value;
+            allowedRadius = parseInt(document.getElementById('allowedRadius').value);
+            currentBusinessName = businessName;
+            
+            if (!businessName || !officeAddress) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            // Create the URL that the QR code will point to
+            const qrUrl = `${window.location.origin}/register.html?action=checkin&business=${encodeURIComponent(businessName)}&lat=${TARGET_COORDINATES.lat}&lng=${TARGET_COORDINATES.lng}&radius=${allowedRadius}&t=${Date.now()}`;
+            
+            // Generate QR code
+            const canvas = document.createElement('canvas');
+            const qr = new QRious({
+                element: canvas,
+                value: qrUrl,
+                size: 300,
+                background: 'white',
+                foreground: 'black'
+            });
+            
+            document.getElementById('qrResult').innerHTML = `
+                <div class="qr-display">
+                    <img src="/workstar_logo.png" alt="WorkStar" style="height: 60px; margin-bottom: 15px;">
+                    <h3>🎯 Your WorkStar Competition QR Code</h3>
+                    <p><strong>Business:</strong> ${businessName}</p>
+                    <p><strong>Address:</strong> ${officeAddress}</p>
+                    <p><strong>Allowed Radius:</strong> ${allowedRadius} meters</p>
+                    <div style="margin: 20px 0;">
+                        ${canvas.outerHTML}
+                    </div>
+                    <p><small>Employees must scan this QR code while physically at the office to register for daily prizes</small></p>
+                    <div class="coordinates">
+                        <strong>QR Code URL:</strong><br>
+                        ${qrUrl}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Earth's radius in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; // Distance in meters
+        }
+        
+        function checkLocation() {
+            if (!navigator.geolocation) {
+                document.getElementById('locationResult').innerHTML = `
+                    <div class="status error">❌ Geolocation is not supported by this browser</div>
+                `;
+                return;
+            }
+            
+            document.getElementById('locationResult').innerHTML = `
+                <div class="status info">📍 Getting your location...</div>
+            `;
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+                    
+                    const distance = calculateDistance(
+                        userLat, userLng,
+                        TARGET_COORDINATES.lat, TARGET_COORDINATES.lng
+                    );
+                    
+                    document.getElementById('locationResult').innerHTML = `
+                        <div class="status info">
+                            <strong>📍 Your Current Location:</strong><br>
+                            Latitude: ${userLat.toFixed(6)}<br>
+                            Longitude: ${userLng.toFixed(6)}<br>
+                            Accuracy: ±${accuracy.toFixed(0)} meters
+                        </div>
+                        <div class="status info">
+                            <strong>🏢 Target Office Location:</strong><br>
+                            Latitude: ${TARGET_COORDINATES.lat}<br>
+                            Longitude: ${TARGET_COORDINATES.lng}
+                        </div>
+                        <div class="status ${distance <= allowedRadius ? 'success' : 'error'}">
+                            <strong>📏 Distance to Office:</strong> ${distance.toFixed(1)} meters<br>
+                            <strong>Status:</strong> ${distance <= allowedRadius ? '✅ WITHIN ALLOWED RANGE' : '❌ TOO FAR FROM OFFICE'}<br>
+                            <strong>Required:</strong> Must be within ${allowedRadius} meters
+                        </div>
+                    `;
+                },
+                function(error) {
+                    document.getElementById('locationResult').innerHTML = `
+                        <div class="status error">❌ Location access denied or failed: ${error.message}</div>
+                    `;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000
+                }
+            );
+        }
+        
+        function simulateOfficeLocation() {
+            const distance = 25; // Simulate being 25 meters from office
+            
+            document.getElementById('locationResult').innerHTML = `
+                <div class="status info">
+                    <strong>🧪 SIMULATION MODE</strong><br>
+                    Simulating location: 25 meters from office
+                </div>
+                <div class="status success">
+                    <strong>📍 Your Current Location:</strong> 27 Otonga Road, Ashgrove<br>
+                    <strong>📏 Distance to Office:</strong> 25.0 meters<br>
+                    <strong>Status:</strong> ✅ WITHIN ALLOWED RANGE<br>
+                    <strong>Required:</strong> Must be within ${allowedRadius} meters
+                </div>
+            `;
+        }
+        
+        function registerEmployee() {
+            const employeeName = document.getElementById('employeeName').value;
+            const employeePhone = document.getElementById('employeePhone').value;
+            
+            if (!employeeName || !employeePhone) {
+                document.getElementById('registrationResult').innerHTML = `
+                    <div class="status error">❌ Please enter both name and phone number</div>
+                `;
+                return;
+            }
+            
+            document.getElementById('registrationResult').innerHTML = `
+                <div class="status success">
+                    ✅ <strong>Check-in Successful!</strong><br>
+                    Employee: ${employeeName}<br>
+                    Phone: ${employeePhone}<br>
+                    Business: ${currentBusinessName}<br>
+                    Time: ${new Date().toLocaleTimeString()}<br>
+                    <br>
+                    🎯 You're now entered in today's 10am WorkStar competition!
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

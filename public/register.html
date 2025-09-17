@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorkStar Daily Registration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .status {
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+        
+        .loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+        }
+        
+        .form-section {
+            margin: 30px 0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #FFD700;
+        }
+        
+        .register-btn {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #1E3A8A;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        
+        .register-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .register-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #FFD700;
+        }
+        
+        .countdown {
+            font-size: 2rem;
+            color: #FFD700;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .already-registered {
+            background: #e7f3ff;
+            border: 2px solid #007bff;
+            color: #0056b3;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .prize-info {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #333;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 2px solid #ffc107;
+        }
+        
+        .steps {
+            text-align: left;
+            margin: 20px 0;
+        }
+        
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="/workstar_logo.png" alt="WorkStar Logo" style="height: 100px; margin-bottom: 20px;">
+        <h1>WorkStar Daily Competition</h1>
+        <div class="subtitle">Register for today's prize competition</div>
+        
+        <div id="accessStatus"></div>
+        <div id="registrationForm" style="display: none;"></div>
+        <div id="alreadyRegistered" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Configuration
+        const TARGET_OFFICE = {
+            lat: -27.4354,
+            lng: 153.0082,
+            name: "27 Otonga Road, Ashgrove",
+            radius: 50 // meters
+        };
+        
+        let currentBusiness = "";
+        let hasValidAccess = false;
+        
+        // Utility functions
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Earth's radius in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+        
+        function getTodayKey() {
+            return new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+        }
+        
+        function hasRegisteredToday(phone) {
+            const today = getTodayKey();
+            const registrations = JSON.parse(localStorage.getItem('dailyRegistrations') || '{}');
+            return registrations[today] && registrations[today].includes(phone);
+        }
+        
+        function registerForToday(employee) {
+            const today = getTodayKey();
+            const registrations = JSON.parse(localStorage.getItem('dailyRegistrations') || '{}');
+            
+            if (!registrations[today]) {
+                registrations[today] = [];
+            }
+            
+            registrations[today].push(employee.phone);
+            localStorage.setItem('dailyRegistrations', JSON.stringify(registrations));
+            
+            // Store employee details
+            const employees = JSON.parse(localStorage.getItem('employees') || '{}');
+            employees[employee.phone] = employee;
+            localStorage.setItem('employees', JSON.stringify(employees));
+        }
+        
+        function checkQRAccess() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const action = urlParams.get('action');
+            const business = urlParams.get('business');
+            const qrTimestamp = urlParams.get('t');
+            
+            if (action !== 'checkin' || !business || !qrTimestamp) {
+                showAccessDenied("Invalid access. This page can only be accessed by scanning the office QR code.");
+                return false;
+            }
+            
+            // Check if QR code is recent (within 5 minutes)
+            const qrTime = parseInt(qrTimestamp);
+            const currentTime = Date.now();
+            const timeDiff = currentTime - qrTime;
+            
+            if (timeDiff > 5 * 60 * 1000) { // 5 minutes in milliseconds
+                showAccessDenied("QR code has expired. Please scan the office QR code again.");
+                return false;
+            }
+            
+            currentBusiness = business;
+            return true;
+        }
+        
+        function verifyLocation() {
+            document.getElementById('accessStatus').innerHTML = `
+                <div class="status loading">
+                    📍 Verifying your location...<br>
+                    <small>Please allow location access when prompted</small>
+                </div>
+            `;
+            
+            if (!navigator.geolocation) {
+                showAccessDenied("Geolocation is not supported. Registration requires location verification.");
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+                    
+                    const distance = calculateDistance(
+                        userLat, userLng,
+                        TARGET_OFFICE.lat, TARGET_OFFICE.lng
+                    );
+                    
+                    console.log(`Distance to office: ${distance.toFixed(1)}m (accuracy: ±${accuracy.toFixed(0)}m)`);
+                    
+                    if (distance <= TARGET_OFFICE.radius + accuracy) {
+                        showLocationVerified(distance, accuracy);
+                        hasValidAccess = true;
+                        checkExistingRegistration();
+                    } else {
+                        showAccessDenied(`You are ${distance.toFixed(0)}m from the office. You must be within ${TARGET_OFFICE.radius}m to register.`);
+                    }
+                },
+                function(error) {
+                    showAccessDenied(`Location verification failed: ${error.message}. Registration requires location access.`);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 30000
+                }
+            );
+        }
+        
+        function showAccessDenied(message) {
+            document.getElementById('accessStatus').innerHTML = `
+                <div class="status error">
+                    🚫 <strong>Access Denied</strong><br>
+                    ${message}
+                </div>
+                <div class="info-box">
+                    <strong>How to access this page:</strong><br>
+                    1. Be physically present at the office<br>
+                    2. Scan the office QR code<br>
+                    3. Allow location access when prompted
+                </div>
+            `;
+        }
+        
+        function showLocationVerified(distance, accuracy) {
+            document.getElementById('accessStatus').innerHTML = `
+                <div class="status success">
+                    ✅ <strong>Location Verified!</strong><br>
+                    You are ${distance.toFixed(0)}m from ${TARGET_OFFICE.name}<br>
+                    <small>GPS accuracy: ±${accuracy.toFixed(0)}m</small>
+                </div>
+            `;
+        }
+        
+        function checkExistingRegistration() {
+            // Check if user has already registered today (simplified - using localStorage)
+            const today = getTodayKey();
+            const existingRegistration = localStorage.getItem(`registration_${today}`);
+            
+            if (existingRegistration) {
+                const employee = JSON.parse(existingRegistration);
+                showAlreadyRegistered(employee);
+            } else {
+                showRegistrationForm();
+            }
+        }
+        
+        function showAlreadyRegistered(employee) {
+            document.getElementById('alreadyRegistered').style.display = 'block';
+            document.getElementById('alreadyRegistered').innerHTML = `
+                <div class="already-registered">
+                    <h2>✅ Already Registered!</h2>
+                    <p><strong>Name:</strong> ${employee.name}</p>
+                    <p><strong>Phone:</strong> ${employee.phone}</p>
+                    <p><strong>Company:</strong> ${employee.business}</p>
+                    <p><strong>Registered:</strong> ${employee.timestamp}</p>
+                </div>
+                
+                <div class="prize-info">
+                    <h3>🎯 WorkStar Daily Competition</h3>
+                    <p><strong>Prize Draw:</strong> 10:00 AM daily</p>
+                    <p>Watch for your name to appear on the WorkStar competition website!</p>
+                    <p>If called, you'll have 3 minutes to phone in and answer a trivia question.</p>
+                </div>
+                
+                <div class="countdown" id="countdown"></div>
+            `;
+            
+            startCountdown();
+        }
+        
+        function showRegistrationForm() {
+            document.getElementById('registrationForm').style.display = 'block';
+            document.getElementById('registrationForm').innerHTML = `
+                <div class="form-section">
+                    <div class="prize-info">
+                        <h3>🏆 WorkStar Daily Prize</h3>
+                        <p><strong>Daily Draw:</strong> 10:00 AM</p>
+                        <p><strong>Prize:</strong> $100 Gift Card</p>
+                        <p>Register now for your chance to win!</p>
+                    </div>
+                    
+                    <form id="employeeForm">
+                        <div class="form-group">
+                            <label for="employeeName">Full Name:</label>
+                            <input type="text" id="employeeName" required placeholder="Enter your full name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="employeePhone">Phone Number:</label>
+                            <input type="tel" id="employeePhone" required placeholder="Enter your phone number">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="employeeEmail">Email (optional):</label>
+                            <input type="email" id="employeeEmail" placeholder="Enter your email">
+                        </div>
+                        
+                        <button type="submit" class="register-btn">
+                            🎯 Register for Today's Competition
+                        </button>
+                    </form>
+                    
+                    <div class="steps">
+                        <h4>What happens next:</h4>
+                        <div class="step">📝 Your registration is confirmed</div>
+                        <div class="step">🎲 At 10AM, one name is randomly selected</div>
+                        <div class="step">📞 Selected person has 3 minutes to call in</div>
+                        <div class="step">🧠 Answer trivia question correctly to win!</div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('employeeForm').addEventListener('submit', handleRegistration);
+        }
+        
+        function handleRegistration(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('employeeName').value.trim();
+            const phone = document.getElementById('employeePhone').value.trim();
+            const email = document.getElementById('employeeEmail').value.trim();
+            
+            if (!name || !phone) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Check if phone number already registered today
+            if (hasRegisteredToday(phone)) {
+                alert('This phone number is already registered for today');
+                return;
+            }
+            
+            const employee = {
+                name: name,
+                phone: phone,
+                email: email,
+                business: currentBusiness,
+                timestamp: new Date().toLocaleString(),
+                registrationDate: getTodayKey()
+            };
+            
+            // Store registration
+            localStorage.setItem(`registration_${getTodayKey()}`, JSON.stringify(employee));
+            registerForToday(employee);
+            
+            // Show success
+            document.getElementById('registrationForm').innerHTML = `
+                <div class="status success">
+                    🎉 <strong>Registration Successful!</strong><br>
+                    Welcome to today's competition, ${name}!
+                </div>
+                
+                <div class="prize-info">
+                    <h3>🎯 You're in the WorkStar Competition!</h3>
+                    <p><strong>Name:</strong> ${name}</p>
+                    <p><strong>Phone:</strong> ${phone}</p>
+                    <p><strong>Company:</strong> ${currentBusiness}</p>
+                    <p><strong>Competition Time:</strong> 10:00 AM</p>
+                </div>
+                
+                <div class="steps">
+                    <h4>Important Reminders:</h4>
+                    <div class="step">📱 Keep your phone nearby at 10AM</div>
+                    <div class="step">⏰ If your name is called, you have 3 minutes to respond</div>
+                    <div class="step">📞 Call the number displayed on screen</div>
+                    <div class="step">🧠 Answer the trivia question to win!</div>
+                </div>
+                
+                <div class="countdown" id="countdown"></div>
+            `;
+            
+            startCountdown();
+        }
+        
+        function startCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            
+            function updateCountdown() {
+                const now = new Date();
+                const tomorrow10AM = new Date();
+                tomorrow10AM.setHours(10, 0, 0, 0);
+                
+                if (now.getHours() >= 10) {
+                    tomorrow10AM.setDate(tomorrow10AM.getDate() + 1);
+                }
+                
+                const diff = tomorrow10AM - now;
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                countdownElement.innerHTML = `
+                    ⏰ Next Competition:<br>
+                    ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}
+                `;
+            }
+            
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        }
+        
+        // Initialize the page
+        window.onload = function() {
+            console.log('Page loaded, checking access...');
+            
+            if (!checkQRAccess()) {
+                return;
+            }
+            
+            verifyLocation();
+        };
+        
+        // Prevent page caching and bookmarking
+        window.addEventListener('beforeunload', function() {
+            // Clear the URL to prevent direct access
+            if (hasValidAccess) {
+                window.history.replaceState({}, '', window.location.pathname);
+            }
+        });
+    </script>
+</body>
+</html>

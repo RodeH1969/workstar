@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorkStar Live Competition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header img {
+            height: 100px;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            font-size: 1.5rem;
+            opacity: 0.9;
+        }
+        
+        .sponsor-section {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 3px solid #FFD700;
+        }
+        
+        .sponsor-title {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .sponsor-logo {
+            height: 80px;
+            margin-bottom: 15px;
+        }
+        
+        .sponsor-tagline {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+            overflow: hidden;
+            white-space: nowrap;
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            color: #FFD700;
+            padding: 15px 0;
+            margin: 15px -30px;
+            position: relative;
+            border-top: 2px solid #FFD700;
+            border-bottom: 2px solid #FFD700;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .ticker-content {
+            display: inline-block;
+            animation: scroll-ticker 20s linear infinite;
+            padding-left: 100%;
+        }
+        
+        .sponsor-tagline:hover .ticker-content {
+            animation-play-state: paused;
+        }
+        
+        @keyframes scroll-ticker {
+            0% { transform: translate3d(100%, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+        
+        .sponsor-link {
+            display: inline-block;
+            background: #FFD700;
+            color: #1E3A8A;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+        }
+        
+        .sponsor-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .main-content {
+            padding: 40px;
+        }
+        
+        .prize-amount {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .prize-display {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #1E3A8A;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
+        }
+        
+        .workstar-box {
+            background: #f8f9fa;
+            border: 3px solid #1E3A8A;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .workstar-title {
+            font-size: 2rem;
+            color: #1E3A8A;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .selected-employee {
+            font-size: 3rem;
+            color: #FFD700;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .employee-company {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .waiting-message {
+            font-size: 1.5rem;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .trivia-section {
+            background: #e7f3ff;
+            border: 2px solid #007bff;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .trivia-title {
+            font-size: 1.5rem;
+            color: #007bff;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .trivia-topic {
+            font-size: 1.3rem;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .phone-section {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(220, 53, 69, 0.4);
+            border: 4px solid #FFD700;
+            position: relative;
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse-glow {
+            from {
+                box-shadow: 0 15px 35px rgba(220, 53, 69, 0.4), 0 0 20px rgba(255, 215, 0, 0.3);
+            }
+            to {
+                box-shadow: 0 15px 35px rgba(220, 53, 69, 0.6), 0 0 30px rgba(255, 215, 0, 0.6);
+            }
+        }
+        
+        .phone-title {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .phone-number {
+            font-size: 5rem;
+            font-weight: 900;
+            margin-bottom: 25px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+            letter-spacing: 3px;
+        }
+        
+        .phone-urgent {
+            background: #FFD700;
+            color: #dc3545;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: flash-urgent 1s ease-in-out infinite;
+        }
+        
+        @keyframes flash-urgent {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .countdown {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 15px;
+        }
+        
+        .countdown-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .status-section {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .status-message {
+            font-size: 1.3rem;
+            color: #856404;
+            font-weight: 500;
+        }
+        
+        .participant-count {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #155724;
+        }
+        
+        .next-draw-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .test-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 1000;
+        }
+        
+        .test-controls button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        
+        .test-controls button:hover {
+            background: #218838;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .selected-employee { font-size: 2rem; }
+            .phone-number { font-size: 3rem; }
+            .countdown { font-size: 2rem; }
+            .sponsor-tagline { 
+                font-size: 1rem; 
+                margin: 15px -20px;
+            }
+            .ticker-content {
+                animation-duration: 15s;
+            }
+            .phone-title { font-size: 1.5rem; }
+            .phone-urgent { font-size: 1.2rem; }
+            .phone-section { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with WorkStar Logo -->
+        <div class="header">
+            <img src="/workstar_logo.png" alt="WorkStar Logo">
+            <h1>WorkStar Live Competition</h1>
+            <div class="subtitle">Daily Prize Draw</div>
+        </div>
+        
+        <!-- Sponsor Section -->
+        <div class="sponsor-section">
+            <div class="sponsor-title">Today's Prize brought to you by</div>
+            <img src="/yellowu_logo.png" alt="Yellow Utes Logo" class="sponsor-logo">
+            <div class="sponsor-tagline">
+                <div class="ticker-content">⚡ Instant ute rental anywhere in Brisbane ⚡ Book online in 60 seconds ⚡ Available 24/7 ⚡ Instant ute rental anywhere in Brisbane ⚡</div>
+            </div>
+            <a href="https://www.yellow-utes.com.au" target="_blank" class="sponsor-link">Visit Yellow Utes</a>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Prize Amount -->
+            <div class="prize-amount">
+                <div class="prize-display" id="prizeAmount">$100 Gift Card</div>
+                <div class="participant-count" id="participantCount">
+                    Loading today's participants...
+                </div>
+            </div>
+            
+            <!-- Today's WorkStar Box -->
+            <div class="workstar-box">
+                <div class="workstar-title">Today's WorkStar is:</div>
+                <div id="selectedEmployee">
+                    <div class="waiting-message" id="waitingMessage">
+                        Competition starts at 10:00 AM
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trivia Section -->
+            <div class="trivia-section" id="triviaSection" style="display: none;">
+                <div class="trivia-title">Today's Trivia Topic:</div>
+                <div class="trivia-topic" id="triviaTopicDisplay">Loading...</div>
+            </div>
+            
+            <!-- Phone Number Section -->
+            <div class="phone-section" id="phoneSection" style="display: none;">
+                <div class="phone-urgent">🚨 CALL NOW TO WIN! 🚨</div>
+                <div class="phone-title">Number to Call:</div>
+                <div class="phone-number">0459 754 708</div>
+                <div class="phone-urgent">📞 YOU HAVE 5 MINUTES! 📞</div>
+                <div class="countdown" id="countdownDisplay">5:00</div>
+                <div class="countdown-label">Time remaining to call</div>
+            </div>
+            
+            <!-- Status Section -->
+            <div class="status-section">
+                <div class="status-message" id="statusMessage">
+                    Daily competition begins at 10:00 AM. Make sure you're registered!
+                </div>
+            </div>
+            
+            <!-- Next Draw Info -->
+            <div class="next-draw-info" id="nextDrawInfo">
+                <h3>How it works:</h3>
+                <p>📱 At 10:00 AM, one registered employee is randomly selected</p>
+                <p>📞 They have 5 minutes to call the number above</p>
+                <p>🧠 Answer the trivia question correctly to win the prize!</p>
+                <p>⏰ If no response, next employee is selected with reduced prize</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Test Controls (remove in production) -->
+    <div class="test-controls">
+        <div style="margin-bottom: 10px; font-weight: bold;">Test Controls:</div>
+        <button onclick="startCompetition()">Start Competition</button>
+        <button onclick="nextEmployee()">Next Employee</button>
+        <button onclick="resetCompetition()">Reset</button>
+    </div>
+
+    <script>
+        // Competition state
+        let currentEmployee = null;
+        let currentPrizeIndex = 0;
+        let countdownInterval = null;
+        let timeRemaining = 300; // 5 minutes in seconds
+        let competitionActive = false;
+        let todaysParticipants = [];
+        let usedEmployees = [];
+        let triviaTopics = []; // Will be loaded from file
+        
+        // Prize amounts (decreases with each failed attempt)
+        const prizeAmounts = ['$100', '$80', '$60', '$40', '$20'];
+        
+        // Load trivia topics from file
+        async function loadTriviaTopics() {
+            try {
+                console.log('Loading trivia topics from /topics/topics.txt...');
+                const response = await fetch('/topics/topics.txt');
+                if (response.ok) {
+                    const text = await response.text();
+                    // Split by lines and parse numbered format (1. Topic Name)
+                    triviaTopics = text.split('\n')
+                        .map(line => line.trim())
+                        .filter(line => line.length > 0)
+                        .map(line => {
+                            // Remove the number prefix (1., 2., etc.)
+                            const match = line.match(/^\d+\.\s*(.+)$/);
+                            return match ? match[1] : line;
+                        })
+                        .filter(topic => topic.length > 0);
+                    
+                    console.log(`✅ Loaded ${triviaTopics.length} trivia topics:`, triviaTopics);
+                } else {
+                    console.error('❌ Failed to load trivia topics file - Status:', response.status);
+                    // Use your specific fallback topics
+                    triviaTopics = [
+                        "Harry Potter",
+                        "Game of Thrones",
+                        "AFL",
+                        "NRL",
+                        "Dangerous animals",
+                        "Outback Australia",
+                        "True Crime Australia",
+                        "Married at First Sight",
+                        "Australian politics",
+                        "Natural disasters"
+                    ];
+                    console.log('Using your specific fallback topics');
+                }
+            } catch (error) {
+                console.error('❌ Error loading trivia topics:', error);
+                // Use your specific fallback topics
+                triviaTopics = [
+                    "Harry Potter",
+                    "Game of Thrones",
+                    "AFL",
+                    "NRL",
+                    "Dangerous animals",
+                    "Outback Australia",
+                    "True Crime Australia",
+                    "Married at First Sight",
+                    "Australian politics",
+                    "Natural disasters"
+                ];
+                console.log('Using your specific fallback topics due to error');
+            }
+        }
+        
+        // Get today's key for localStorage
+        function getTodayKey() {
+            return new Date().toISOString().split('T')[0];
+        }
+        
+        // Load today's registered participants
+        function loadTodaysParticipants() {
+            const today = getTodayKey();
+            const registrations = JSON.parse(localStorage.getItem('dailyRegistrations') || '{}');
+            const employees = JSON.parse(localStorage.getItem('employees') || '{}');
+            
+            if (registrations[today]) {
+                todaysParticipants = registrations[today].map(phone => employees[phone]).filter(emp => emp);
+            }
+            
+            updateParticipantCount();
+        }
+        
+        // Update participant count display
+        function updateParticipantCount() {
+            const count = todaysParticipants.length;
+            document.getElementById('participantCount').innerHTML = `
+                📊 ${count} employee${count !== 1 ? 's' : ''} registered for today's competition
+            `;
+        }
+        
+        // Get random trivia topic
+        function getRandomTriviaTopic() {
+            if (triviaTopics.length === 0) {
+                return "General Knowledge"; // Fallback if no topics loaded
+            }
+            return triviaTopics[Math.floor(Math.random() * triviaTopics.length)];
+        }
+        
+        // Check if it's time to start competition (10 AM)
+        function checkCompetitionTime() {
+            const now = new Date();
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            
+            // Auto-start at 10:00 AM
+            if (hour === 10 && minute === 0 && !competitionActive) {
+                startCompetition();
+            }
+        }
+        
+        // Start the competition
+        function startCompetition() {
+            if (todaysParticipants.length === 0) {
+                document.getElementById('statusMessage').innerHTML = 
+                    '❌ No participants registered for today. Competition cannot start.';
+                return;
+            }
+            
+            competitionActive = true;
+            currentPrizeIndex = 0;
+            usedEmployees = [];
+            
+            selectNextEmployee();
+        }
+        
+        // Select next employee
+        function selectNextEmployee() {
+            // Filter out already used employees
+            const availableEmployees = todaysParticipants.filter(emp => 
+                !usedEmployees.includes(emp.phone)
+            );
+            
+            if (availableEmployees.length === 0) {
+                endCompetition('No more participants available');
+                return;
+            }
+            
+            if (currentPrizeIndex >= prizeAmounts.length) {
+                endCompetition('All prize levels exhausted');
+                return;
+            }
+            
+            // Select random employee
+            const randomIndex = Math.floor(Math.random() * availableEmployees.length);
+            currentEmployee = availableEmployees[randomIndex];
+            usedEmployees.push(currentEmployee.phone);
+            
+            // Update displays
+            updatePrizeDisplay();
+            updateEmployeeDisplay();
+            showTriviaSection();
+            startCountdown();
+            
+            document.getElementById('statusMessage').innerHTML = 
+                `🎯 ${currentEmployee.name} has been selected! They have 5 minutes to call.`;
+        }
+        
+        // Update prize display
+        function updatePrizeDisplay() {
+            document.getElementById('prizeAmount').innerHTML = 
+                `${prizeAmounts[currentPrizeIndex]} Gift Card`;
+        }
+        
+        // Update employee display
+        function updateEmployeeDisplay() {
+            document.getElementById('selectedEmployee').innerHTML = `
+                <div class="selected-employee">${currentEmployee.name}</div>
+                <div class="employee-company">${currentEmployee.business}</div>
+            `;
+        }
+        
+        // Show trivia section
+        function showTriviaSection() {
+            const triviaSection = document.getElementById('triviaSection');
+            const phoneSection = document.getElementById('phoneSection');
+            
+            triviaSection.style.display = 'block';
+            phoneSection.style.display = 'block';
+            
+            document.getElementById('triviaTopicDisplay').innerHTML = getRandomTriviaTopic();
+        }
+        
+        // Start countdown timer
+        function startCountdown() {
+            timeRemaining = 300; // 5 minutes
+            
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            countdownInterval = setInterval(updateCountdown, 1000);
+            updateCountdown();
+        }
+        
+        // Update countdown display
+        function updateCountdown() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            
+            document.getElementById('countdownDisplay').innerHTML = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            timeRemaining--;
+            
+            if (timeRemaining < 0) {
+                clearInterval(countdownInterval);
+                timeExpired();
+            }
+        }
+        
+        // Handle time expiry
+        function timeExpired() {
+            document.getElementById('statusMessage').innerHTML = 
+                `⏰ Time expired for ${currentEmployee.name}. Selecting next participant...`;
+            
+            currentPrizeIndex++;
+            
+            setTimeout(() => {
+                selectNextEmployee();
+            }, 3000);
+        }
+        
+        // Move to next employee (manual trigger for testing)
+        function nextEmployee() {
+            if (!competitionActive) return;
+            
+            clearInterval(countdownInterval);
+            currentPrizeIndex++;
+            selectNextEmployee();
+        }
+        
+        // End competition
+        function endCompetition(reason) {
+            competitionActive = false;
+            clearInterval(countdownInterval);
+            
+            document.getElementById('phoneSection').style.display = 'none';
+            document.getElementById('triviaSection').style.display = 'none';
+            
+            document.getElementById('selectedEmployee').innerHTML = `
+                <div class="waiting-message">Competition ended: ${reason}</div>
+            `;
+            
+            document.getElementById('statusMessage').innerHTML = 
+                '🏁 Today\'s competition has ended. See you tomorrow at 10:00 AM!';
+        }
+        
+        // Reset competition (for testing)
+        function resetCompetition() {
+            competitionActive = false;
+            currentEmployee = null;
+            currentPrizeIndex = 0;
+            usedEmployees = [];
+            
+            clearInterval(countdownInterval);
+            
+            document.getElementById('phoneSection').style.display = 'none';
+            document.getElementById('triviaSection').style.display = 'none';
+            
+            document.getElementById('selectedEmployee').innerHTML = `
+                <div class="waiting-message">Competition starts at 10:00 AM</div>
+            `;
+            
+            document.getElementById('prizeAmount').innerHTML = '$100 Gift Card';
+            
+            document.getElementById('statusMessage').innerHTML = 
+                'Daily competition begins at 10:00 AM. Make sure you\'re registered!';
+        }
+        
+        // Update current time display
+        function updateTimeDisplay() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            
+            // Check if it's competition time
+            if (!competitionActive) {
+                checkCompetitionTime();
+            }
+        }
+        
+        // Initialize page
+        window.onload = async function() {
+            // Load trivia topics from file first
+            await loadTriviaTopics();
+            
+            // Load today's participants
+            loadTodaysParticipants();
+            
+            // Update time every second
+            setInterval(updateTimeDisplay, 1000);
+            
+            // Check competition time every minute
+            setInterval(checkCompetitionTime, 60000);
+            
+            updateTimeDisplay();
+        };
+    </script>
+</body>
+</html>
